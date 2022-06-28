@@ -1,0 +1,5 @@
+biopython==1.79
+dgl-cu111==0.8.2
+dglgo==0.0.1
+dgllife==0.2.9
+transformers==4.20.1
