@@ -1,0 +1,25 @@
+
+FROM nvidia/cuda:10.2-runtime-ubuntu18.04
+
+RUN apt-get update   && apt-get -y install --no-install-recommends git python3 python3-pip libsm6 libxext6     libxrender1 libglib2.0-0 python3-setuptools     ffmpeg libgl1-mesa-glx   && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install boto3 pandas
+
+WORKDIR /opt/ml/code
+COPY doc2csv.py .
+#COPY input.manifest .
+
+# Make sure python doesn't buffer stdout so we get logs ASAP.
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONPATH=/opt/ml/code
+ENV MY_REGION=us-east-2
+ENV BUCKET_NAME=hcls-kg-workshop
+ENV S3_PREFIX=source
+
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,video,utility
+
+ENTRYPOINT ["python3", "/opt/ml/code/doc2csv.py"]
+
