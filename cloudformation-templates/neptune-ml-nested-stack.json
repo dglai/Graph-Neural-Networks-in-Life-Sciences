@@ -1,0 +1,480 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "A nested template to deploy Neptune ML Quick start related",
+  "Parameters": {
+    "Env": {
+      "Description": "Environment tag, e.g. prod, nonprod.",
+      "Default": "test",
+      "Type": "String",
+      "AllowedPattern": "[a-z0-9]+",
+      "MaxLength": 15
+    },
+    "DbInstanceType": {
+      "Description": "Neptune DB instance type",
+      "Type": "String",
+      "Default": "db.r5.large",
+      "AllowedValues": [
+        "db.t3.medium",
+        "db.r4.large",
+        "db.r4.xlarge",
+        "db.r4.2xlarge",
+        "db.r4.4xlarge",
+        "db.r4.8xlarge",
+        "db.r5.large",
+        "db.r5.xlarge",
+        "db.r5.2xlarge",
+        "db.r5.4xlarge",
+        "db.r5.8xlarge",
+        "db.r5.12xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid Neptune instance type. Note that for Stockholm and OSU only R5 and T3 instances are available."
+    },
+    "DBReplicaIdentifierSuffix": {
+      "Description": "OPTIONAL: The ID for the Neptune Replica to use. Empty means no read replica.",
+      "Type": "String",
+      "Default": ""
+    },
+    "DBClusterPort": {
+      "Type": "String",
+      "Default": "8182",
+      "Description": "Enter the port of your Neptune cluster"
+    },
+    "NeptuneQueryTimeout": {
+      "Type": "Number",
+      "Default": 7200000,
+      "Description": "Neptune Query Time out (in milliseconds)"
+    },
+    "NeptuneEnableAuditLog": {
+      "Type": "Number",
+      "Default": 0,
+      "AllowedValues": [
+        0,
+        1
+      ],
+      "Description": "Enable Audit Log. 0 means disable and 1 means enable."
+    },
+    "EnableIamAuthOnNeptune": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Enable IAM Auth for Neptune."
+    },
+    "EnableIAMAuthOnExportAPI": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Enable IAM auth on export tool"
+    },
+    "NeptuneExportVPCOnly": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "ConstraintDescription": "Must be a either true or false",
+      "Description": "Determines whether Neptune-Export is a VPC-only service."
+    },
+    "NotebookInstanceType": {
+      "Description": "SageMaker Notebook instance type. Please refer https://aws.amazon.com/sagemaker/pricing/ for uptodate allowed instance type in aws region and https://aws.amazon.com/neptune/pricing/ for pricing.",
+      "Type": "String",
+      "Default": "ml.t3.medium",
+      "AllowedValues": [
+        "ml.t2.medium",
+        "ml.t2.large",
+        "ml.t2.xlarge",
+        "ml.t2.2xlarge",
+        "ml.t3.medium",
+        "ml.t3.large",
+        "ml.t3.xlarge",
+        "ml.t3.2xlarge",
+        "ml.m4.xlarge",
+        "ml.m4.2xlarge",
+        "ml.m4.4xlarge",
+        "ml.m4.10xlarge",
+        "ml.m4.16xlarge",
+        "ml.m5.xlarge",
+        "ml.m5.2xlarge",
+        "ml.m5.4xlarge",
+        "ml.m5.12xlarge",
+        "ml.m5.24xlarge",
+        "ml.c4.large",
+        "ml.c4.xlarge",
+        "ml.c4.2xlarge",
+        "ml.c4.4xlarge",
+        "ml.c4.8xlarge",
+        "ml.c5.xlarge",
+        "ml.c5.2xlarge",
+        "ml.c5.4xlarge",
+        "ml.c5.9xlarge",
+        "ml.c5.18xlarge",
+        "ml.c5d.xlarge",
+        "ml.c5d.2xlarge",
+        "ml.c5d.4xlarge",
+        "ml.c5d.9xlarge",
+        "ml.c5d.18xlarge",
+        "ml.p3.2xlarge",
+        "ml.p3.8xlarge",
+        "ml.p3.16xlarge",
+        "ml.p2.2xlarge",
+        "ml.p2.8xlarge",
+        "ml.p2.16xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid SageMaker instance type."
+    }
+  },
+  "Resources": {
+    "NeptuneBaseStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": {
+          "Fn::Join": [
+            "",
+            [
+              "https://s3.amazonaws.com/aws-neptune-customer-samples/v2/cloudformation-templates/neptune-base-stack.json"
+            ]
+          ]
+        },
+        "TimeoutInMinutes": "60",
+        "Parameters": {
+          "Env": {
+            "Ref": "Env"
+          },
+          "DBReplicaIdentifierSuffix": {
+            "Ref": "DBReplicaIdentifierSuffix"
+          },
+          "DBClusterPort": {
+            "Ref": "DBClusterPort"
+          },
+          "DbInstanceType": {
+            "Ref": "DbInstanceType"
+          },
+          "NeptuneQueryTimeout": {
+            "Ref": "NeptuneQueryTimeout"
+          },
+          "NeptuneEnableAuditLog": {
+            "Ref": "NeptuneEnableAuditLog"
+          },
+          "IamAuthEnabled": {
+            "Ref": "EnableIamAuthOnNeptune"
+          }
+        }
+      }
+    },
+    "NeptunMLCoreStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": {
+          "Fn::Join": [
+            "",
+            [
+              "https://gnn-in-lifesci-kdd2022.s3.us-west-2.amazonaws.com/cloudformation-templates/neptune-ml-core-stack.json"
+            ]
+          ]
+        },
+        "TimeoutInMinutes": "60",
+        "Parameters": {
+          "Env": {
+            "Ref": "Env"
+          },
+          "NotebookInstanceType": {
+            "Ref": "NotebookInstanceType"
+          },
+          "DBClusterEndpoint": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.DBClusterEndpoint"
+            ]
+          },
+          "DBClusterId": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.DBClusterId"
+            ]
+          },
+          "NeptuneClusterResourceId": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.DBClusterResourceId"
+            ]
+          },
+          "NeptuneClusterPort": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.DBClusterPort"
+            ]
+          },
+          "VPC": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.VPC"
+            ]
+          },
+          "PublicSubnet1": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.PublicSubnet1"
+            ]
+          },
+          "PrivateSubnet1": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.PrivateSubnet1"
+            ]
+          },
+          "PrivateSubnet2": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.PrivateSubnet2"
+            ]
+          },
+          "NeptuneSecurityGroup": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.NeptuneSG"
+            ]
+          },
+          "NeptuneLoadFromS3RoleArn": {
+            "Fn::GetAtt": [
+              "NeptuneBaseStack",
+              "Outputs.NeptuneLoadFromS3IAMRoleArn"
+            ]
+          },
+          "EnableIAMAuthOnExportAPI": {
+            "Ref": "EnableIAMAuthOnExportAPI"
+          },
+          "EnableIamAuthOnNeptune": {
+            "Ref": "EnableIamAuthOnNeptune"
+          },
+          "NeptuneExportVPCOnly": {
+            "Ref": "NeptuneExportVPCOnly"
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "DBClusterId": {
+      "Description": "Neptune Cluster Identifier",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBClusterId"
+        ]
+      }
+    },
+    "DBSubnetGroupId": {
+      "Description": "Neptune DBSubnetGroup Identifier",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBSubnetGroupId"
+        ]
+      }
+    },
+    "DBClusterResourceId": {
+      "Description": "Neptune Cluster Resource Identifier",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBClusterResourceId"
+        ]
+      }
+    },
+    "DBClusterEndpoint": {
+      "Description": "Master Endpoint for Neptune Cluster",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBClusterEndpoint"
+        ]
+      }
+    },
+    "DBInstanceEndpoint": {
+      "Description": "Master Instance Endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBInstanceEndpoint"
+        ]
+      }
+    },
+    "SparqlEndpoint": {
+      "Description": "Sparql Endpoint for Neptune",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.SparqlEndpoint"
+        ]
+      }
+    },
+    "GremlinEndpoint": {
+      "Description": "Gremlin Endpoint for Neptune",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.GremlinEndpoint"
+        ]
+      }
+    },
+    "LoaderEndpoint": {
+      "Description": "Loader Endpoint for Neptune",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.LoaderEndpoint"
+        ]
+      }
+    },
+    "DBClusterReadEndpoint": {
+      "Description": "DB cluster Read Endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBClusterReadEndpoint"
+        ]
+      }
+    },
+    "DBClusterPort": {
+      "Description": "Port for the Neptune Cluster",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.DBClusterPort"
+        ]
+      }
+    },
+    "NeptuneLoadFromS3IAMRoleArn": {
+      "Description": "IAM Role for loading data in Neptune",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.NeptuneLoadFromS3IAMRoleArn"
+        ]
+      }
+    },
+    "NeptuneIamAuthUser": {
+      "Description": "IAM User for IAM Auth",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.NeptuneIamAuthUser"
+        ]
+      }
+    },
+    "VPC": {
+      "Description": "VPC",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.VPC"
+        ]
+      }
+    },
+    "Subnet1": {
+      "Description": "Private Subnet1",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.PrivateSubnet1"
+        ]
+      }
+    },
+    "Subnet2": {
+      "Description": "Private Subnet2",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.PrivateSubnet2"
+        ]
+      }
+    },
+    "NeptuneSagemakerNotebook": {
+      "Description": "Neptune Sagemaker Notebook Name",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneSagemakerNotebook"
+        ]
+      }
+    },
+    "NeptuneNotebookInstanceLifecycleConfigId": {
+      "Description": "Neptune Sagemaker Notebook Instance Lifecycle ConfigId",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneNotebookInstanceLifecycleConfigId"
+        ]
+      }
+    },
+    "NeptuneMLIAMRole": {
+      "Description": "Neptune ML IAM role",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneMLIAMRole"
+        ]
+      }
+    },
+    "NeptuneMLIAMRoleArn": {
+      "Description": "Neptune ML IAM role arn",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneMLIAMRoleArn"
+        ]
+      }
+    },
+    "StartNeptuneExportCommand": {
+      "Description": "API command to start Neptune-Export job",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.StartNeptuneExportCommand"
+        ]
+      }
+    },
+    "NeptuneExportStatusCommand": {
+      "Description": "API command to get status of a Neptune-Export job",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneExportStatusCommand"
+        ]
+      }
+    },
+    "NeptuneExportSecurityGroup": {
+      "Description": "Neptune-Export Security Group",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneExportSecurityGroup"
+        ]
+      }
+    },
+    "NeptuneExportApiUri": {
+      "Description": "Neptune-Export API URI",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptunMLCoreStack",
+          "Outputs.NeptuneExportApiUri"
+        ]
+      }
+    },
+    "NeptuneSecurityGroup": {
+      "Description": "Neptune SecurityGroup",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneBaseStack",
+          "Outputs.NeptuneSG"
+        ]
+      }
+    }
+  }
+}
