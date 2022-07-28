@@ -1,5 +1,4 @@
 biopython==1.79
-dgl-cu111==0.8.2
-dgllife==0.2.9
+dgllife==0.3.0
 rdkit==2022.03.4
 transformers==4.20.1
