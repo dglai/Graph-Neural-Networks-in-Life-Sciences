@@ -134,7 +134,7 @@
           "Fn::Join": [
             "",
             [
-              "https://gnn-in-lifesci-kdd2022.s3.us-west-2.amazonaws.com/cloudformation-templates/neptune-sagemaker-notebook-stack.json"
+              "https://d2125kp0qwrvcx.cloudfront.net/cloudformation-templates/neptune-sagemaker-notebook-stack.json"
             ]
           ]
         },
