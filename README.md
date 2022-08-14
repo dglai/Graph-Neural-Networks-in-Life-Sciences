@@ -38,7 +38,7 @@ Within the AWS environment, we will use
 - S3 Bucket: Amazon Simple Storage Service (Amazon S3) is an object storage service offering industry-leading scalability, data availability, security, and performance.
 As part of this workshop, this AWS environment has already been set up for you via AWS Event Engine.
 
-Head to https://dashboard.eventengine.run/login  and enter the event engine hash `f843-10d7089734-9a`. You will be asked to login with an email to receive the OTP to get an AWS Account. Follow the instructions on the website
+Head to https://dashboard.eventengine.run/login  and enter the event engine hash `7cc6-1b4e149c64-b8`. You will be asked to login with an email to receive the OTP to get an AWS Account. Follow the instructions on the website
 
 1. Click on AWS Console
 2. On the window popup, select `Open Console`. This will open an AWS Console. The AWS Management Console is a browser-based GUI for Amazon Web Services (AWS). Through the console, a customer can manage their cloud computing, cloud storage and other resources running on the Amazon Web Services infrastructure.
