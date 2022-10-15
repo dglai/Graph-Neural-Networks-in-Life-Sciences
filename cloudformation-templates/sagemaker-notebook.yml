@@ -1,0 +1,88 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This stack deploys a Sagemaker notebook instance.
+
+Parameters:
+  SageMakerInstanceType:
+    Type: String
+    Description: Instance type for SageMaker
+    Default: ml.t3.medium
+    AllowedValues:
+      - ml.t3.medium
+      - ml.t3.2xlarge
+      - ml.t3.large
+      - ml.p3.2xlarge
+      - ml.p2.2xlarge
+
+  SageMakerInstanceVolumeSize:
+    Type: Number
+    Description: Volume Size (in GB) for the SageMaker Notebook instance
+    Default: 5
+
+Resources:
+  # SageMaker
+  SageMakerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Description: SageMaker notebook instance role
+      RoleName: !Sub ${AWS::StackName}-SageMakerRoleName
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-SageMakerRoleName
+
+  SageMakerNotebookInstance:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      PlatformIdentifier: notebook-al2-v1
+      InstanceType: !Ref SageMakerInstanceType
+      NotebookInstanceName: !Sub ${AWS::StackName}-SageMakerInstance
+      RoleArn: !GetAtt SageMakerRole.Arn
+      DirectInternetAccess: Enabled
+      LifecycleConfigName: !GetAtt SageMakerNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-SageMakerInstance
+      VolumeSizeInGB: !Ref SageMakerInstanceVolumeSize
+
+  SageMakerNotebookInstanceLifecycleConfig:
+    Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
+    Properties:
+      OnStart:
+        - Content:
+            Fn::Base64: |
+              #!/bin/bash
+              sudo -u ec2-user -i <<'EOF'
+              source /home/ec2-user/anaconda3/etc/profile.d/conda.sh
+              conda activate pytorch_p38
+              cd /home/ec2-user/SageMaker
+              git clone --recurse-submodules -j8 https://github.com/dglai/Graph-Neural-Networks-in-Life-Sciences.git
+              cd /home/ec2-user/SageMaker/Graph-Neural-Networks-in-Life-Sciences
+              pip install dgl dglgo -f https://data.dgl.ai/wheels/repo.html
+              pip install -r requirements.txt
+              source /home/ec2-user/anaconda3/bin/deactivate
+              EOF
+
+Outputs:
+  StackName:
+    Value: !Sub ${AWS::StackName}
+  SageMakerRole:
+    Value: !Ref SageMakerRole
+  SageMakerNotebookInstance:
+    Value: !Ref SageMakerNotebookInstance
+  SageMakerNotebookInstanceLifecycleConfig:
+    Value: !Ref SageMakerNotebookInstanceLifecycleConfig
